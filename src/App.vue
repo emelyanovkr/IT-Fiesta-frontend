@@ -8,11 +8,13 @@ export default defineComponent({
 
 <template>
   <div id="app">
-    <nav class="navbar navbar-expand-lg" style="background-color: #182e6f;">
+    <nav class="navbar navbar-expand-lg" style="background-color: #182e6f">
       <div class="container-fluid">
         <div class="navbar-nav d-flex flex-row">
           <router-link class="nav-link mx-2 text-decoration-none" to="/">Home</router-link>
           <router-link class="nav-link mx-2 text-decoration-none" to="/manage">Manage</router-link>
+          <!-- TODO: Delete later -->
+          <router-link class="nav-link mx-2 text-decoration-none" to="/test">Test</router-link>
         </div>
       </div>
     </nav>
@@ -22,15 +24,14 @@ export default defineComponent({
 
 <style scoped>
 .nav-link {
-  color: #F5F5DC;
+  color: #f5f5dc;
 }
 
 .nav-link:hover {
-  color: #CBCBCB;
+  color: #cbcbcb;
 }
 
-.nav-link:active
-.nav-link:focus {
+.nav-link:active .nav-link:focus {
   text-decoration: none;
 }
 </style>
