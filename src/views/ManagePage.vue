@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import * as bootstrap from 'bootstrap'
-import EventCard, { type EventCardProps } from '@/components/eventCards/EventCard.vue'
+
+import EventCard, { type EventCardProps } from '@/components/eventCard/EventCard.vue'
 
 const eventName = ref('')
 const hostName = ref('')
@@ -9,25 +9,31 @@ const dateOfEvent = ref('')
 const location = ref('')
 const maxVisitors = ref('')
 const description = ref('')
-const additionalInfo = ref('')
 
 const errors = ref<Record<string, string>>({})
 
 const maxCharCount = 1000
-const charCount = computed(() => additionalInfo.value.length)
+const alertShownTimeMs = 3000
+const CREATED_SUCCESS_MSG = 'Event created successfully'
+
+const charCount = computed(() => description.value.length)
 const isFormValid = computed(() => charCount.value <= maxCharCount)
 
-const showSuccessAlert = ref(false)
+const alertVisible = ref(false)
+const alertMessage = ref('')
 
-const hideAlert = () => {
-  const closeButton = document.querySelector('#successAlert .btn-close') as HTMLElement
-  if (closeButton) {
-    closeButton.click()
-  }
-
+const showAlert = (message: string) => {
+  alertMessage.value = message
+  alertVisible.value = true
   setTimeout(() => {
-    showSuccessAlert.value = false
-  }, 500)
+    const alertResultButton = document.getElementById('alertResultCloseBtn') as HTMLElement
+    if (alertResultButton) {
+      alertResultButton.click()
+    }
+    setTimeout(() => {
+      alertVisible.value = false
+    }, 500)
+  }, alertShownTimeMs)
 }
 
 const submitForm = async () => {
@@ -37,8 +43,7 @@ const submitForm = async () => {
     dateOfEvent: dateOfEvent.value,
     location: location.value,
     maxVisitors: maxVisitors.value,
-    description: description.value,
-    additionalInfo: additionalInfo.value
+    description: description.value
   }
 
   try {
@@ -66,14 +71,9 @@ const submitForm = async () => {
       location.value = ''
       maxVisitors.value = ''
       description.value = ''
-      additionalInfo.value = ''
       errors.value = {}
 
-      showSuccessAlert.value = true
-
-      setTimeout(() => {
-        hideAlert()
-      }, 3000)
+      showAlert(CREATED_SUCCESS_MSG)
     } else {
       errors.value = await response.json()
     }
@@ -96,6 +96,7 @@ const fetchEvents = async () => {
     if (response.ok) {
       const data = await response.json()
       loadedEvents.value = data.map((event: any) => ({
+        id: event.id,
         eventName: event.eventName,
         hostName: event.hostName,
         description: event.description,
@@ -117,27 +118,34 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="container text-center mt-4">
+  <div
+    v-if="alertVisible"
+    id="alertResult"
+    class="alert alert-success alert-dismissible fade show text-center"
+    role="alert"
+  >
+    {{ alertMessage }}
+    <button
+      type="button"
+      id="alertResultCloseBtn"
+      class="btn-close"
+      aria-label="Close"
+      data-bs-dismiss="alert"
+    ></button>
+  </div>
+
+  <div class="container-fluid px-5 manage-page-container">
     <h1 class="mb-2">Event Management</h1>
-    <p class="mb-3 text-center">You can manage events hosted by you or create a new one - your choose.</p>
-
-    <div
-      v-if="showSuccessAlert"
-      id="successAlert"
-      class="alert alert-success alert-dismissible fade show"
-      role="alert"
-    >
-      Event created successfully!
-      <button type="button" class="btn-close" aria-label="Close" data-bs-dismiss="alert"></button>
-    </div>
-
+    <p class="mb-3 text-center">
+      You can manage events hosted by you or create a new one - your choose.
+    </p>
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createEventModal">
       Create Event
     </button>
 
-    <div class="row mt-3">
-      <div v-for="event in loadedEvents" :key="event.eventName" class="col-md-3 mb-2">
-       <EventCard :event-data="event"/>
+    <div class="card-row">
+      <div v-for="event in loadedEvents" :key="event.eventName" class="card-column">
+        <EventCard :event-data="event" :fetch-events="fetchEvents" :show-alert="showAlert" />
       </div>
     </div>
 
@@ -231,33 +239,21 @@ onMounted(() => {
               </div>
 
               <div class="mb-3">
-                <label for="description" class="form-label">Description</label>
-                <div v-if="errors.description" class="text-danger">{{ errors.description }}</div>
+                <div class="d-flex justify-content-between">
+                  <label for="description" class="text-start form-label">Description</label>
+                  <span class="text-muted">{{ charCount }} / {{ maxCharCount }}</span>
+                </div>
                 <textarea
                   class="form-control"
                   id="description"
                   v-model="description"
                   placeholder="Enter description here"
                   required
-                  style="height: 75px"
-                ></textarea>
-              </div>
-
-              <div class="mb-3">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                  <label for="additionalInfo" class="form-label">Additional Information</label>
-                  <span class="text-muted">{{ charCount }} / {{ maxCharCount }}</span>
-                </div>
-                <textarea
-                  class="form-control"
-                  id="additionalInfo"
-                  v-model="additionalInfo"
-                  placeholder="Enter additional information here"
                   style="height: 100px"
                 ></textarea>
-
-                <div v-if="!isFormValid" class="text-danger mt-1">
-                  Additional information exceeds limit: {{ charCount }} > {{ maxCharCount }}
+                <div v-if="errors.description" class="text-danger">{{ errors.description }}</div>
+                <div v-if="!isFormValid" class="text-danger">
+                  Description exceeds limit: {{ charCount }} > {{ maxCharCount }}
                 </div>
               </div>
 
@@ -278,8 +274,10 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.text-center {
-  text-align: center;
+.text-danger {
+  text-align: left;
+  margin-top: 3px;
+  margin-left: 3px;
 }
 
 .alert-success {
@@ -287,14 +285,10 @@ onMounted(() => {
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: auto;
+  z-index: 1100;
   width: 40%;
   opacity: 0.9;
   transition: opacity 0.5s ease;
-}
-
-.mt-5 {
-  margin-top: 3rem;
 }
 
 .btn-primary {
@@ -322,18 +316,27 @@ onMounted(() => {
   background-color: #4b4b4b;
 }
 
-.mb-4 {
+.manage-page-container {
   text-align: center;
-  font-weight: 450;
-  margin-bottom: 1.5rem;
+  margin-top: 1.5rem;
 }
 
-.mx-2 {
-  margin-left: 0.5rem;
-  margin-right: 0.5rem;
+.card-row {
+  margin-top: 30px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
 }
 
-.mb-3 {
-  text-align: left;
+.card-row:after {
+  content: '';
+  flex: auto;
+}
+
+.card-column {
+  flex: calc(20% - 20px);
+  margin-bottom: 10px;
+  max-width: calc(20% - 20px);
 }
 </style>

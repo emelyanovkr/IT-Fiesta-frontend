@@ -3,7 +3,7 @@ import type { RouteRecordRaw } from 'vue-router' // Импорт типа
 import Home from '@/views/HomePage.vue'
 import Manage from '@/views/ManagePage.vue'
 
-import TestPage from '@/TestPage.vue'
+import TestPage from '@/views/TestPage.vue'
 
 const routes: RouteRecordRaw[] = [
   { path: '/', component: Home, meta: { title: 'Home Page' } },
