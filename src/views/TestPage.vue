@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import EventCard from '@/components/eventCards/EventCard.vue'
+import EventCard from '@/components/eventCard/EventCard.vue'
 
 const events = [
   {
