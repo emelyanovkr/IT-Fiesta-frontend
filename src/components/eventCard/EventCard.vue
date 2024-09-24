@@ -6,10 +6,11 @@ export interface EventCardProps {
   id: number
   eventName: string
   hostName: string
-  description: string
   date: string
   time: string
   location: string
+  maxVisitors: number
+  description: string
 }
 
 defineProps<{
@@ -62,13 +63,22 @@ const showModal = (modalId: string) => {
       </p>
     </div>
 
-    <div class="card-footer d-flex justify-content-between">
-      <span class="event-date-time">
+    <div class="card-footer position-relative" style="height: 55px; padding: 5px 10px">
+      <span class="event-date-time position-absolute bottom-0 start-0" style="padding-bottom: 5px; padding-left: 5px;">
         <i class="bi bi-clock card-icons" /> {{ formatDate(eventData.date) }} -
         {{ formatTime(eventData.time) }}
       </span>
-      <span class="event-location">
+      <span
+        class="event-location position-absolute bottom-0 end-0 me-2"
+        style="padding-bottom: 5px"
+      >
         <i class="bi bi-geo-alt card-icons" /> {{ eventData.location }}
+      </span>
+      <span
+        class="event-max-visitors position-absolute top-0 start-0 d-flex align-items-center"
+        style="padding-left: 5px; padding-top: 5px;"
+      >
+        <i class="bi bi-person card-icons me-1" /> {{ eventData.maxVisitors }}
       </span>
     </div>
 

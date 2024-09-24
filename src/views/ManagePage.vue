@@ -65,6 +65,7 @@ const submitForm = async () => {
         closeCreateModal.click()
       }
 
+      // TODO: make a single object & store that fields
       eventName.value = ''
       hostName.value = ''
       dateOfEvent.value = ''
@@ -99,10 +100,11 @@ const fetchEvents = async () => {
         id: event.id,
         eventName: event.eventName,
         hostName: event.hostName,
-        description: event.description,
         date: event.dateOfEvent.split('T')[0],
         time: event.dateOfEvent.split('T')[1],
-        location: event.location
+        location: event.location,
+        maxVisitors: event.maxVisitors,
+        description: event.description
       }))
     } else {
       console.error('Error getting data')
